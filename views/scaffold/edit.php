@@ -9,15 +9,15 @@
 	<body>
 		<div id="container">
 			<p>
-				<?php echo HTML::anchor('scaffold', 'Models'); ?> > <?php echo HTML::anchor('scaffold/list/'.strtolower($column), $column); ?> > <strong><?php echo __("Edit") ?></strong>
+				<?php echo HTML::anchor('scaffold', 'Models'); ?> > <?php echo HTML::anchor('scaffold/list/'.$column, ImplodeUppercase::ucwords_text($column)); ?> > <strong><?php echo __("Edit") ?></strong>
 			</p>
 			<?php echo Form::open('scaffold/save/', array('id'=>'scaffold_edit')); ?>
 				<fieldset>
 					<table width="100%" cellpadding="0" cellspacing="0">
 						<tfoot>
 							<tr>
-								<td><input type="hidden" name="column" value="<?php echo strtolower($column); ?>" style="display:none" /></td>
-								<td><?php echo Form::submit('', __("Save"), Array("class"=>"submit")); ?> <span><?php echo __("or") ?></span> <?php echo HTML::anchor('scaffold/list/'.strtolower($column), __("Cancel")); ?></td>
+								<td><input type="hidden" name="column" value="<?php echo $column; ?>" style="display:none" /></td>
+								<td><?php echo Form::submit('', __("Save"), Array("class"=>"submit")); ?> <span><?php echo __("or") ?></span> <?php echo HTML::anchor('scaffold/list/'.$column, __("Cancel")); ?></td>
 							</tr>
 						</tfoot>
 						<tbody>
@@ -34,7 +34,7 @@
 			<?php echo Form::close(); ?>
 			</form>
 			<p>
-				<?php echo HTML::anchor('scaffold/list/'.strtolower($column), "< " . __("Back") . " " . __("to") . " " . $column ); ?>
+				<a href="../"></a><?php echo HTML::anchor('scaffold/list/'. $column, "< " . __("Back") . " " . __("to") . " " . ImplodeUppercase::ucwords_text($column) ); ?>
 			</p>
 		</div>
 		<?php echo View::factory("scaffold/snippets/footer")->render(); ?>

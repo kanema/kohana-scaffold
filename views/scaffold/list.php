@@ -9,15 +9,15 @@
 	<body>
 		<div id="container">
 			<p>
-				<?php echo HTML::anchor('scaffold', 'Models'); ?> > <strong><?php echo $column ?></strong>
+				<?php echo HTML::anchor('scaffold', 'Models'); ?> > <strong><?php echo ImplodeUppercase::ucwords_text($column) ?></strong>
 			</p>
 			<?php
 				if ( ! empty( $msg ) ) {
-					echo "<div id=\"msg\" class=\"msg ". $msgtype ."\">" . $msg . "<a href=\"./". strtolower($column) ."\" id=\"msg-button\">[X]</a></div>";
+					echo "<div id=\"msg\" class=\"msg ". $msgtype ."\">" . $msg . "<a href=\"./". $column ."\" id=\"msg-button\">[X]</a></div>";
 				};
 			?>
 			<p>
-				<?php echo HTML::anchor('scaffold/insert/'.strtolower($column), __("Insert"), Array("class"=>"submit right")); ?>
+				<?php echo HTML::anchor('scaffold/insert/' . $column, __("Insert"), Array("class"=>"submit right")); ?>
 			</p>
 			<table width="100%" cellpadding="0" cellspacing="0">
 				<thead>
@@ -50,6 +50,9 @@
 			</table>
 			<p>
 				<?php echo $pagination ?>
+			</p>
+			<p>
+				<?php echo HTML::anchor('scaffold', "< " . __("Back") . " " . __("to") . " " . __("Model") ); ?>
 			</p>
 		</div>
 		<?php echo View::factory("scaffold/snippets/footer")->render(); ?>

@@ -9,6 +9,10 @@
 	td { border-right:1px solid #333; font-size:12px; padding:3px 3px 3px 10px; }
 	td.last { text-align:center; }
 	label { display:inline; float:left; position:relative; width:212px; }
+	a:link,
+	a:visited { text-decoration:none; }
+	a:hover,
+	a:active { text-decoration:underline; }
 	a.submit,
 	input.text { border:1px solid #333; padding:3px 5px; text-decoration:none; width:700px; }
 	input.text:focus { background:#ffe; }

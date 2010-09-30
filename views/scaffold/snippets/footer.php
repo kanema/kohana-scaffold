@@ -4,9 +4,12 @@
 	( function( $ ) {
 		var $msg = $("#msg");
 		$msg.find("#msg-button").click( function() {
-			$msg.hide();
+			$msg.slideUp();
 			return false;
 		});
+		window.setTimeout(function() {
+			$msg.slideUp();
+		}, 5000);
 		
 		$('a[class="delete"]').click( function() {
 			if ( ! confirm('Are you sure you want to delete?') )

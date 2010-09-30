@@ -12,12 +12,11 @@ Class Controller_Scaffold extends Controller {
 	
 	protected $header = Array();
 	
-	protected $header_html = "";
-	
 	protected function _get_schema( $force = FALSE ) {
+		$column = ImplodeUppercase::decode( $this->column );
 		if ( empty( $this->header ) || $force )
 		{
-			$db = Database::instance()->list_columns( $this->column );
+			$db = Database::instance()->list_columns( $column );
 			$this->header = Array();
 			foreach ( $db as $collum ) {
 				array_push($this->header, $collum["column_name"]);
@@ -38,7 +37,10 @@ Class Controller_Scaffold extends Controller {
 				$model_tmp = $this->column = $model;
 			};
 			$class_name = $this->column;
-			$directory_name = "model" . DIRECTORY_SEPARATOR;
+			$class_name = str_replace("_", " ", $class_name);
+			$class_name = str_replace(" ", "", ucwords(strtolower($class_name)));
+			$directory_name = "model" . DIRECTORY_SEPARATOR . "scaffold" . DIRECTORY_SEPARATOR;
+			/*
 			if ( preg_match("/_/i", $class_name) )
 			{
 				$directory_name = "model";
@@ -53,6 +55,7 @@ Class Controller_Scaffold extends Controller {
 					};
 				};
 			};
+			*/
 			$path = APPPATH.'classes'.DIRECTORY_SEPARATOR.$directory_name;
 			$file = $path.$class_name.EXT;
 
@@ -62,18 +65,18 @@ Class Controller_Scaffold extends Controller {
 				$_primary_key = "";
 				$_primary_val = "";
 				foreach ( $db as $collum ) {
-					if ( ! empty( $_primary_key ) && ! empty( $_primary_val ) && $collum["type"] === "string" ) {
+					if ( ( $_primary_key !== "" ) && ( $_primary_val === "" ) && $collum["type"] === "string" ) {
 						$_primary_val = $collum["column_name"];
 					};
-					if ( isset( $collum["key"] ) && $collum["key"] === "PRI" ) {
+					if ( $collum["key"] === "PRI" ) {
 						$_primary_key = $collum["column_name"];
 					};
 				};
 				$model_container = "<?php defined('SYSPATH') or die('No direct access allowed.');
-class Model_". ucfirst($this->column) ." extends ORM
+class Model_Scaffold_". $class_name ." extends ORM
 {
 	protected \$_db = 'default';
-    protected \$_table_name  = '". $this->column ."';
+    protected \$_table_name  = '". str_replace("scaffold_", "", $this->column ) ."';
     protected \$_primary_key = '$_primary_key';
     protected \$_primary_val = '$_primary_val';
  
@@ -146,7 +149,12 @@ class Model_". ucfirst($this->column) ." extends ORM
 		};
 		
 		$subPath =  ( isset($_GET["dir"]) ) ? $_GET["dir"] : "";
-		$path = APPPATH.'classes' . DIRECTORY_SEPARATOR . "model" . DIRECTORY_SEPARATOR .$subPath;
+		$path = APPPATH.'classes' . DIRECTORY_SEPARATOR . "model" . DIRECTORY_SEPARATOR  . "scaffold" . DIRECTORY_SEPARATOR . $subPath;
+		
+		if ( ! is_dir($path) )
+		{
+			mkdir($path, 0777, TRUE);
+		};
 		
 		if ($handle = opendir($path)) {
 			$files = Array();
@@ -171,7 +179,7 @@ class Model_". ucfirst($this->column) ." extends ORM
 			foreach ( $files as $item )
 			{
 				$item_name = str_replace(Array($path, EXT), "", $item);
-				array_push( $content, HTML::anchor('scaffold/list/'.$subPath.$item_name, ucfirst($item_name)) );
+				array_push( $content, HTML::anchor('scaffold/list/'.$subPath.$item_name, ImplodeUppercase::ucwords_text($item_name)) );
 			};
 		};
 		
@@ -194,15 +202,15 @@ class Model_". ucfirst($this->column) ." extends ORM
 		{
 			Request::instance()->redirect('scaffold');
 		};
-		$this->column = ( isset( $request ) ) ? $request : $this->column;
-		$this->_get_schema(TRUE);
+		$this->column = $request;
+		$this->_get_schema();
 		
 		if ( $this->column === "" ) {
 			echo "<p>". __("Please, select a column") . "</p>";
 			exit;
 		};
 		
-		$orm = ORM::factory($this->column);
+		$orm = ORM::factory("scaffold_".$this->column);
 		
 		$controller = url::base() . request::instance()->controller;
 		
@@ -249,18 +257,21 @@ class Model_". ucfirst($this->column) ." extends ORM
 		if ( $request === "save" ) {
 			$this->column = $_POST["column"];
 			unset( $_POST["column"] );
-			$post = Validate::factory($_POST)->rule(TRUE, 'not_empty')->as_array();
-			$post_key = array_keys( $post );
-			$post_value = array_values( $post );
-
-			$query = DB::insert($this->column, $post_key)
-									->values($post_value)
-									->execute();
+			
+			$orm = ORM::factory("scaffold_".$this->column)->values( $_POST );
+			
+			if ( $orm->check() ) {
+				$orm->save();
+				Request::instance()->redirect('scaffold/list/'. $this->column .'/?msg='. __('Record updated successfully') .'!');
+			} else {
+				$errors = $orm->validate()->errors();
+				Request::instance()->redirect("scaffold/list/". $this->column . "/?msg=$errors&msgtype=error");
+			}
 										
 			Request::instance()->redirect('scaffold/list/'. $this->column .'/?msg='. __("Record Added Successfully") . '!');
 		} else {
 			$this->column = $request;
-			$this->_get_schema(TRUE);
+			$this->_get_schema();
 			$data = Array(
 				"column" => ucfirst(str_replace("_"," ",$this->column)),
 				"header" => $this->header,
@@ -276,7 +287,7 @@ class Model_". ucfirst($this->column) ." extends ORM
 		$this->column = $request;
 		$this->_get_schema(TRUE);
 		
-		$orm = ORM::factory($this->column, $id)->as_array();
+		$orm = ORM::factory("scaffold_".$this->column, $id)->as_array();
 
 		$data = Array(
 			"column" => ucfirst($this->column),
@@ -294,7 +305,7 @@ class Model_". ucfirst($this->column) ." extends ORM
 		$this->column = $_POST["column"];
 		unset( $_POST["column"] );
 		
-		$orm = ORM::factory($this->column, array_shift( $_POST ))->values( $_POST );
+		$orm = ORM::factory("scaffold_".$this->column, array_shift( $_POST ))->values( $_POST );
 		
 		if ($orm->check()) {
 			$orm->save();
@@ -310,7 +321,7 @@ class Model_". ucfirst($this->column) ." extends ORM
 		$this->column = $request;
 		$this->_get_schema();
 		
-		$orm = ORM::factory($this->column, $id)->delete();
+		$orm = ORM::factory("scaffold_".$this->column, $id)->delete();
 
 		Request::instance()->redirect("scaffold/list/". $request ."/?msg=" . __("Registration $request successfully deleted") . "!&msgtype=error");
 	}
