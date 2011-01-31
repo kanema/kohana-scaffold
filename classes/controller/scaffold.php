@@ -27,6 +27,26 @@ Class Controller_Scaffold extends Controller {
 		}
 	}
 	
+	public function before()
+	{
+	}
+	
+	public function flash( $msg, $type = "success" )
+	{
+		$last = Session::instance()->get("flash.message");
+		$new = array(
+			"msg" => $msg, 
+			"type" => $type
+		);
+		if ( $last !== NULL )
+		{
+			$new = array_merge( array($new), $last );
+		} else {
+			$new = array( $new );
+		};
+		Session::instance()->set("flash.message",  $new);
+	}
+	
 	protected function _auto_model( $model = NULL )
 	{
 		$success = FALSE;
@@ -104,19 +124,34 @@ class Model_Scaffold_". $class_name ." extends ORM
 	protected function auto_modeler()
 	{
 		$i = 0;
+		$items = array();
 		foreach ( Database::instance()->list_tables() as $item )
 		{
 			if ( $this->_auto_model( $item ) )
 			{
 				$i++;
 			};
+			$items[] = str_replace( "_", "", $item );
 		};
+
+		$path = APPPATH . 'classes' . DIRECTORY_SEPARATOR . "model" . DIRECTORY_SEPARATOR . "scaffold" . DIRECTORY_SEPARATOR;
+		$files = glob( $path . "*.php" );
+
+		foreach ( $files as $fname )
+		{
+			if ( ! in_array( strtolower( str_replace( array($path, ".php"), "", $fname ) ), $items )  )
+			{
+				unlink( $fname );
+			};
+		};
+		
 		if ( $i > 0 )
 		{
-			Request::instance()->redirect("scaffold/?msg=$i new models");
+			$this->flash("$i new models");
 		} else {
-			Request::instance()->redirect("scaffold/?msg=No new model found&msgtype=notice");
+			$this->flash("No new model found", "notice");
 		};
+		Request::instance()->redirect("scaffold");
 	}
 	
 	protected function delete_modeler()
@@ -262,21 +297,19 @@ class Model_Scaffold_". $class_name ." extends ORM
 			
 			if ( $orm->check() ) {
 				$orm->save();
-				Request::instance()->redirect('scaffold/list/'. $this->column .'/?msg='. __('Record updated successfully') .'!');
+				$this->flash(__('Record updated successfully!'));
 			} else {
 				$errors = $orm->validate()->errors();
-				Request::instance()->redirect("scaffold/list/". $this->column . "/?msg=$errors&msgtype=error");
-			}
-										
-			Request::instance()->redirect('scaffold/list/'. $this->column .'/?msg='. __("Record Added Successfully") . '!');
+				$this->flash($errors, "error");
+			};
+			Request::instance()->redirect("scaffold/list/". $this->column . "/");
 		} else {
 			$this->column = $request;
 			$this->_get_schema();
 			$data = Array(
 				"column" => ucfirst(str_replace("_"," ",$this->column)),
 				"header" => $this->header,
-				"first" => $this->db_first,
-				"msg" => ( isset($_GET["msg"]) ? $_GET["msg"] : NULL )
+				"first" => $this->db_first
 			);
 			echo View::factory("scaffold/insert", $data)->render();
 		};
@@ -323,7 +356,8 @@ class Model_Scaffold_". $class_name ." extends ORM
 		
 		$orm = ORM::factory("scaffold_".$this->column, $id)->delete();
 
-		Request::instance()->redirect("scaffold/list/". $request ."/?msg=" . __("Registration $request successfully deleted") . "!&msgtype=error");
+		$this->flash( __("Registration $request successfully deleted"), "error" );
+		Request::instance()->redirect("scaffold/list/". $request);
 	}
 
 }

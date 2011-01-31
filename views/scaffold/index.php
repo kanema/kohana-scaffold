@@ -12,8 +12,13 @@
 				<?php echo __('Models'); ?></strong>
 			</p>
 			<?php
+				$msg = Session::instance()->get("flash.message");
 				if ( ! empty( $msg ) ) {
-					echo "<div id=\"msg\" class=\"msg ". $msgtype ."\">" . $msg . "<a href=\"./\" id=\"msg-button\">[X]</a></div>";
+					foreach ( $msg as $item )
+					{
+						echo "<div id=\"msg\" class=\"msg ". $item["type"] ."\">" . $item["msg"] . "<a href=\"./\" id=\"msg-button\">[X]</a></div>";
+					};
+					Session::instance()->delete("flash.message");
 				};
 			?>
 			<p>
