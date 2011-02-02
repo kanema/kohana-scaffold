@@ -24,6 +24,7 @@
 			<p>
 				<!-- <?php echo HTML::anchor('scaffold?auto_modeler', __("Add a model"), Array("class"=>"submit right")); ?> -->
 				<?php echo HTML::anchor('scaffold?auto_modeler', __("List all models") , Array("class"=>"submit right")); ?>
+				<?php echo HTML::anchor('scaffold?remove_models', __("Remove all models") , Array("class"=>"submit right")); ?>
 			</p>
 			<table width="100%" cellpadding="0" cellspacing="0">
 				<tbody>

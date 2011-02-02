@@ -84,6 +84,7 @@ Class Controller_Scaffold extends Controller {
 				$db = Database::instance()->list_columns( $this->column );
 				$_primary_key = "";
 				$_primary_val = "";
+				
 				foreach ( $db as $collum ) {
 					if ( ( $_primary_key !== "" ) && ( $_primary_val === "" ) && $collum["type"] === "string" ) {
 						$_primary_val = $collum["column_name"];
@@ -154,8 +155,20 @@ class Model_Scaffold_". $class_name ." extends ORM
 		Request::instance()->redirect("scaffold");
 	}
 	
-	protected function delete_modeler()
+	protected function remove_models()
 	{
+		$path = APPPATH.'classes'.DIRECTORY_SEPARATOR ."model" . DIRECTORY_SEPARATOR . "scaffold" . DIRECTORY_SEPARATOR;
+		$count = 0;
+		foreach ( glob( $path . "*" ) as $fname )
+		{
+			unlink( $fname );
+			$count++;
+		};
+		if ( $count === 0 )
+		{
+			$count = "No";
+		};
+		$this->flash("$count models removed", "notice");
 		Request::instance()->redirect("scaffold");
 	}
 
@@ -173,13 +186,13 @@ class Model_Scaffold_". $class_name ." extends ORM
 			};
 		};
 		
-		if ( isset($_GET["delete_modeler"]) )
+		if ( isset($_GET["remove_models"]) )
 		{
-			if ( empty( $_GET["delete_modeler"] ) )
+			if ( empty( $_GET["remove_models"] ) )
 			{
-				$this->delete_modeler();
+				$this->remove_models();
 			} else {
-				$this->delete_modeler( $_GET["delete_modeler"] );
+				$this->remove_models( $_GET["remove_models"] );
 			};
 		};
 		
