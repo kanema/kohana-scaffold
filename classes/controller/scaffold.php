@@ -260,18 +260,18 @@ class Model_Scaffold_". $class_name ." extends ORM
 		
 		$orm = ORM::factory("scaffold_".$this->column);
 		
-		$controller = url::base() . request::current()->controller;
+		$controller = url::base() . request::current()->controller();
 		
 		$this->items_per_page = ( isset( $_GET["items_per_page"] ) ) ? $_GET["items_per_page"] : $this->items_per_page;
 		
-		$pagination = Pagination::factory(array(
+		$pagination = Kohana_Pagination::factory(array(
 			'total_items'    => $orm->count_all(),
 			'items_per_page' => $this->items_per_page
 		));
 		
 		$query = $orm
-			->limit( $pagination->items_per_page )
-			->offset( $pagination->offset )
+			->limit( $pagination->items_per_page() )
+			->offset( $pagination->offset() )
 			->find_all();
 
 		$result = Array();
