@@ -152,7 +152,7 @@ class Model_Scaffold_". $class_name ." extends ORM
 		} else {
 			$this->flash("No new model found", "notice");
 		};
-		Request::instance()->redirect("scaffold");
+		Request::current()->redirect("scaffold");
 	}
 	
 	protected function remove_models()
@@ -169,7 +169,7 @@ class Model_Scaffold_". $class_name ." extends ORM
 			$count = "No";
 		};
 		$this->flash("$count models removed", "notice");
-		Request::instance()->redirect("scaffold");
+		Request::current()->redirect("scaffold");
 	}
 
 	public function action_index()
@@ -248,7 +248,7 @@ class Model_Scaffold_". $class_name ." extends ORM
 	{
 		if ( empty( $request ) )
 		{
-			Request::instance()->redirect('scaffold');
+			Request::current()->redirect('scaffold');
 		};
 		$this->column = $request;
 		$this->_get_schema();
@@ -260,18 +260,18 @@ class Model_Scaffold_". $class_name ." extends ORM
 		
 		$orm = ORM::factory("scaffold_".$this->column);
 		
-		$controller = url::base() . request::instance()->controller;
+		$controller = url::base() . request::current()->controller();
 		
 		$this->items_per_page = ( isset( $_GET["items_per_page"] ) ) ? $_GET["items_per_page"] : $this->items_per_page;
 		
-		$pagination = Pagination::factory(array(
+		$pagination = Kohana_Pagination::factory(array(
 			'total_items'    => $orm->count_all(),
 			'items_per_page' => $this->items_per_page
 		));
 		
 		$query = $orm
-			->limit( $pagination->items_per_page )
-			->offset( $pagination->offset )
+			->limit( $pagination->items_per_page() )
+			->offset( $pagination->offset() )
 			->find_all();
 
 		$result = Array();
@@ -315,7 +315,7 @@ class Model_Scaffold_". $class_name ." extends ORM
 				$errors = $orm->validate()->errors();
 				$this->flash($errors, "error");
 			};
-			Request::instance()->redirect("scaffold/list/". $this->column . "/");
+			Request::current()->redirect("scaffold/list/". $this->column . "/");
 		} else {
 			$this->column = $request;
 			$this->_get_schema();
@@ -355,10 +355,10 @@ class Model_Scaffold_". $class_name ." extends ORM
 		
 		if ($orm->check()) {
 			$orm->save();
-			Request::instance()->redirect('scaffold/list/'. $this->column .'/?msg='. __('Record updated successfully') .'!');
+			Request::current()->redirect('scaffold/list/'. $this->column .'/?msg='. __('Record updated successfully') .'!');
 		} else {
 			$errors = $orm->validate()->errors();
-			Request::instance()->redirect("scaffold/list/". $this->column . "/?msg=$errors&msgtype=error");
+			Request::current()->redirect("scaffold/list/". $this->column . "/?msg=$errors&msgtype=error");
 		}
 	}
 	
@@ -370,7 +370,7 @@ class Model_Scaffold_". $class_name ." extends ORM
 		$orm = ORM::factory("scaffold_".$this->column, $id)->delete();
 
 		$this->flash( __("Registration $request successfully deleted"), "error" );
-		Request::instance()->redirect("scaffold/list/". $request);
+		Request::current()->redirect("scaffold/list/". $request);
 	}
 
 }
